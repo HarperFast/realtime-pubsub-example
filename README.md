@@ -1,13 +1,13 @@
-# LED Sign Control with HarperDB & Vue
+# LED Sign Control with Harper & Vue
 
-Real-time LED sign control system built with [HarperDB](https://www.harperdb.io/) and Vue 3. Control multiple LED signs via MQTT with a responsive web interface featuring bidirectional real-time synchronization.
+Real-time LED sign control system built with [Harper](https://www.harperdb.io/) and Vue 3. Control multiple LED signs via MQTT with a responsive web interface featuring bidirectional real-time synchronization.
 
 ## Features
 
 - Vue 3 web interface for LED sign control
 - Real-time bidirectional sync between UI and hardware
-- MQTT communication with HarperDB as broker
-- State persistence in HarperDB database
+- MQTT communication with Harper as broker
+- State persistence in Harper database
 - Server-Sent Events (SSE) for live updates
 - Support for multiple LED signs
 - Control message, brightness (0-15), and power state
@@ -21,7 +21,7 @@ graph TB
         SSE[SSE Listener<br/>Real-time Updates]
     end
 
-    subgraph "HarperDB"
+    subgraph "Harper"
         REST[REST API<br/>Topic CRUD]
         DB[(Topic Table<br/>topic, value, updated_at)]
         MQTT[MQTT Broker<br/>Port 1883]
@@ -81,7 +81,7 @@ Example: `led-sign/2FE598/message` with value `"Hello World"`
 
 ### Prerequisites
 
-- [HarperDB](https://docs.harperdb.io/docs/install-harperdb): `npm install -g harperdb`
+- [Harper](https://docs.harperdb.io/docs/install-harperdb): `npm install -g harperdb`
 - Node.js 16+ for Vue development
 
 ### Installation
@@ -98,7 +98,7 @@ Example: `led-sign/2FE598/message` with value `"Hello World"`
    VITE_SIGN_ID=2FE598
    ```
 
-4. Start HarperDB:
+4. Start Harper:
    ```bash
    harperdb run .
    ```
@@ -112,12 +112,12 @@ Example: `led-sign/2FE598/message` with value `"Hello World"`
    ```bash
    npm run build
    ```
-   HarperDB serves the built app automatically from `dist/`
+   Harper serves the built app automatically from `dist/`
 
 ### LED Sign Configuration
 
-Configure your LED sign (ESP32 or similar) to connect to HarperDB's MQTT broker:
-- **Broker:** `<your-harperdb-host>:1883`
+Configure your LED sign (ESP32 or similar) to connect to Harper's MQTT broker:
+- **Broker:** `<your-harper-host>:1883`
 - **Subscribe to:** `led-sign/<your-sign-id>/#`
 - **Publish to:** `led-sign/<your-sign-id>/{message|brightness|power}`
 
@@ -125,7 +125,7 @@ Configure your LED sign (ESP32 or similar) to connect to HarperDB's MQTT broker:
 
 ```
 .
-├── config.yaml           # HarperDB configuration (REST & static files)
+├── config.yaml           # Harper configuration (REST & static files)
 ├── schema.graphql        # Database schema (Topic table)
 ├── resources.js          # Custom resource logic (optional)
 ├── src/
@@ -141,7 +141,7 @@ Configure your LED sign (ESP32 or similar) to connect to HarperDB's MQTT broker:
 ## Configuration Files
 
 ### [config.yaml](./config.yaml)
-HarperDB configuration specifying REST API, static file serving, and schema location.
+Harper configuration specifying REST API, static file serving, and schema location.
 
 ### [schema.graphql](./schema.graphql)
 Database schema defining the Topic table for MQTT state persistence:
