@@ -18,13 +18,12 @@ Real-time LED sign control system built with [Harper](https://www.harperdb.io/) 
 graph TB
     subgraph "Vue Frontend"
         UI[User Interface<br/>Message/Brightness/Power Controls]
-        SSE[SSE Listener<br/>Real-time Updates]
     end
 
-    subgraph "Harper"
-        REST[REST API<br/>Topics CRUD]
+    subgraph "Harper Server"
+        HARPER["Harper<br/>━━━━━━━━━━━━━━━━<br/>HTTP/REST :9926<br/>SSE/WS :9926<br/>MQTT :1883<br/>MQTTS :8883"]
         DB[(Topics Table<br/>topic, value, updated_at)]
-        MQTT[MQTT Broker<br/>Port 1883]
+        HARPER <-->|Auto-sync| DB
     end
 
     subgraph "LED Signs"
@@ -32,24 +31,16 @@ graph TB
         SIGN2[LED Sign XXXXXX<br/>ESP32/Hardware]
     end
 
-    UI -->|"PUT /Topic/{topic}"| REST
-    REST -->|Auto-sync| DB
-    DB -->|Auto-publish| MQTT
-    MQTT -->|"Subscribe: led-sign/#"| SIGN1
-    MQTT -->|"Subscribe: led-sign/#"| SIGN2
-    SIGN1 -->|"Publish state"| MQTT
-    SIGN2 -->|"Publish state"| MQTT
-    MQTT -->|Update| DB
-    DB -->|SSE events| SSE
-    SSE -->|Update UI| UI
+    UI -->|"HTTP PUT :9926<br/>/Topics/{topic}"| HARPER
+    UI -->|"SSE :9926<br/>/subscribe?table=Topics"| HARPER
+    HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN1
+    HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN2
 
     style UI fill:#9f7aea,stroke:#6b46c1,color:#fff
-    style REST fill:#4299e1,stroke:#2c5282,color:#fff
+    style HARPER fill:#4299e1,stroke:#2c5282,color:#fff
     style DB fill:#48bb78,stroke:#2f855a,color:#fff
-    style MQTT fill:#ed8936,stroke:#c05621,color:#fff
     style SIGN1 fill:#f56565,stroke:#c53030,color:#fff
     style SIGN2 fill:#f56565,stroke:#c53030,color:#fff
-    style SSE fill:#9f7aea,stroke:#6b46c1,color:#fff
 ```
 
 ### Data Flow
@@ -117,9 +108,16 @@ Example: `led-sign/2FE598/message` with value `"Hello World"`
 ### LED Sign Configuration
 
 Configure your LED sign (ESP32 or similar) to connect to Harper's MQTT broker:
-- **Broker:** `<your-harper-host>:1883`
+- **Broker (MQTT):** `<your-harper-host>:1883` (TCP) or `:8883` (TLS)
 - **Subscribe to:** `led-sign/<your-sign-id>/#`
 - **Publish to:** `led-sign/<your-sign-id>/{message|brightness|power}`
+
+### Harper Server Ports
+
+- **HTTP/REST:** `:9926` - REST API endpoints
+- **SSE/WebSocket:** `:9926` - Real-time subscriptions
+- **MQTT (TCP):** `:1883` - Standard MQTT
+- **MQTTS (TLS):** `:8883` - Secure MQTT over TLS
 
 ## Project Structure
 

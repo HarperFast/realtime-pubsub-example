@@ -26,6 +26,11 @@ Refactor the Vue LED sign control interface to use Harper as the central data st
    - Exposes REST API for CRUD operations
    - Provides SSE for real-time updates
    - Automatically syncs: MQTT ↔ Database
+   - **Ports:**
+     - HTTP/REST: 9926
+     - SSE/WebSocket: 9926
+     - MQTT (TCP): 1883
+     - MQTTS (TLS): 8883
 
 2. **LED Signs (MQTT Clients)**
    - Connect directly to Harper's MQTT broker
@@ -121,10 +126,11 @@ type Topics @table @export (name: "") {
 **That's it!** No other Harper changes needed.
 
 Harper automatically provides:
-- MQTT broker (port 1883, enabled by default)
-- REST API endpoints (config.yaml already has REST enabled)
+- MQTT broker (TCP: 1883, TLS: 8883, enabled by default)
+- REST API endpoints (port 9926, config.yaml already has REST enabled)
+- SSE/WebSocket (port 9926)
 - MQTT ↔ Database sync
-- SSE/real-time subscriptions
+- Real-time subscriptions
 
 ### Vue Changes
 
