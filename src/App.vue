@@ -14,16 +14,6 @@
       </div>
 
       <div class="card-body">
-        <div class="section">
-          <div class="section-title">LED Sign</div>
-          <select v-model="selectedSignId" @change="onSignChange" class="sign-selector">
-            <option value="" disabled>Select a sign...</option>
-            <option v-for="signId in availableSigns" :key="signId" :value="signId">
-              LED Sign {{ signId }}
-            </option>
-          </select>
-        </div>
-
         <div class="section" :class="{ inactive: !selectedSignId }">
           <div class="section-title">Display Message</div>
           <div class="input-group">
@@ -71,6 +61,16 @@
               {{ displayPower ? 'ON' : 'OFF' }}
             </div>
           </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">LED Sign</div>
+          <select v-model="selectedSignId" @change="onSignChange" class="sign-selector">
+            <option value="" disabled>Select a sign...</option>
+            <option v-for="signId in availableSigns" :key="signId" :value="signId">
+              LED Sign {{ signId }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
