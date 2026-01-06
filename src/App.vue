@@ -15,6 +15,16 @@
 
       <div class="card-body">
         <div class="section">
+          <div class="section-title">LED Sign</div>
+          <select v-model="selectedSignId" @change="onSignChange" class="sign-selector">
+            <option value="" disabled>Select a sign...</option>
+            <option v-for="signId in availableSigns" :key="signId" :value="signId">
+              LED Sign {{ signId }}
+            </option>
+          </select>
+        </div>
+
+        <div class="section" v-if="selectedSignId">
           <div class="section-title">Display Message</div>
           <div class="input-group">
             <input
@@ -29,7 +39,7 @@
           <div class="current-message">{{ currentMessage }}</div>
         </div>
 
-        <div class="section">
+        <div class="section" v-if="selectedSignId">
           <div class="section-title">Brightness</div>
           <div class="brightness-control">
             <div class="slider-container">
@@ -45,7 +55,7 @@
           </div>
         </div>
 
-        <div class="section">
+        <div class="section" v-if="selectedSignId">
           <div class="section-title">Display Power</div>
           <div class="toggle-container">
             <div
@@ -70,29 +80,150 @@ export default {
   name: 'App',
   data() {
     return {
+      harperUrl: import.meta.env.VITE_HARPER_URL || 'http://localhost:9926',
+      availableSigns: [],
+      selectedSignId: '',
       message: '',
-      currentMessage: 'This is a live message Ivan sent!',
+      currentMessage: '',
       brightness: 8,
-      displayPower: true
+      displayPower: false,
+      sseConnection: null
+    }
+  },
+  async mounted() {
+    await this.discoverSigns()
+    this.setupSSE()
+  },
+  beforeUnmount() {
+    if (this.sseConnection) {
+      this.sseConnection.close()
     }
   },
   methods: {
-    sendMessage() {
-      if (this.message.trim()) {
-        this.currentMessage = this.message
-        this.message = ''
-        // In a real app, this would send to the ESP32
-        console.log('Sending message:', this.currentMessage)
+    async discoverSigns() {
+      try {
+        const response = await fetch(`${this.harperUrl}/Topic`)
+        if (!response.ok) throw new Error('Failed to fetch topics')
+
+        const topics = await response.json()
+        const signIds = new Set()
+
+        topics.forEach(topic => {
+          const match = topic.topic?.match(/^led-sign\/([^/]+)\//)
+          if (match) {
+            signIds.add(match[1])
+          }
+        })
+
+        this.availableSigns = Array.from(signIds).sort()
+
+        if (this.availableSigns.length > 0 && !this.selectedSignId) {
+          this.selectedSignId = this.availableSigns[0]
+          await this.loadSignState()
+        }
+      } catch (error) {
+        console.error('Error discovering signs:', error)
       }
     },
-    updateBrightness() {
-      // In a real app, this would send to the ESP32
-      console.log('Brightness:', this.brightness)
+
+    buildTopic(property) {
+      return `led-sign/${this.selectedSignId}/${property}`
     },
-    togglePower() {
+
+    async loadSignState() {
+      if (!this.selectedSignId) return
+
+      try {
+        const [messageData, brightData, powerData] = await Promise.all([
+          this.getTopic(this.buildTopic('message')),
+          this.getTopic(this.buildTopic('brightness')),
+          this.getTopic(this.buildTopic('power'))
+        ])
+
+        if (messageData?.value) this.currentMessage = messageData.value
+        if (brightData?.value) this.brightness = parseInt(brightData.value) || 8
+        if (powerData?.value) this.displayPower = powerData.value === 'on'
+      } catch (error) {
+        console.error('Error loading sign state:', error)
+      }
+    },
+
+    async getTopic(topic) {
+      try {
+        const response = await fetch(`${this.harperUrl}/Topic/${encodeURIComponent(topic)}`)
+        if (!response.ok) return null
+        return await response.json()
+      } catch (error) {
+        console.error('Error fetching topic:', error)
+        return null
+      }
+    },
+
+    async updateTopic(topic, value) {
+      try {
+        const response = await fetch(`${this.harperUrl}/Topic/${encodeURIComponent(topic)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, value, updated_at: new Date().toISOString() })
+        })
+        if (!response.ok) throw new Error('Failed to update topic')
+      } catch (error) {
+        console.error('Error updating topic:', error)
+      }
+    },
+
+    async sendMessage() {
+      if (this.message.trim() && this.selectedSignId) {
+        this.currentMessage = this.message
+        await this.updateTopic(this.buildTopic('message'), this.message)
+        this.message = ''
+      }
+    },
+
+    async updateBrightness() {
+      if (this.selectedSignId) {
+        await this.updateTopic(this.buildTopic('brightness'), this.brightness.toString())
+      }
+    },
+
+    async togglePower() {
       this.displayPower = !this.displayPower
-      // In a real app, this would send to the ESP32
-      console.log('Display power:', this.displayPower)
+      if (this.selectedSignId) {
+        await this.updateTopic(this.buildTopic('power'), this.displayPower ? 'on' : 'off')
+      }
+    },
+
+    async onSignChange() {
+      await this.loadSignState()
+    },
+
+    setupSSE() {
+      try {
+        this.sseConnection = new EventSource(`${this.harperUrl}/subscribe?table=Topic`)
+
+        this.sseConnection.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            if (!data.topic || !this.selectedSignId) return
+
+            if (data.topic === this.buildTopic('message')) {
+              this.currentMessage = data.value || ''
+            } else if (data.topic === this.buildTopic('brightness')) {
+              this.brightness = parseInt(data.value) || 8
+            } else if (data.topic === this.buildTopic('power')) {
+              this.displayPower = data.value === 'on'
+            }
+          } catch (error) {
+            console.error('Error parsing SSE message:', error)
+          }
+        }
+
+        this.sseConnection.onerror = (error) => {
+          console.error('SSE error:', error)
+        }
+      } catch (error) {
+        console.error('Error setting up SSE:', error)
+      }
     }
   }
 }
@@ -178,6 +309,20 @@ body {
   font-weight: 600;
   color: #333;
   margin-bottom: 15px;
+}
+.sign-selector {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.sign-selector:focus {
+  outline: none;
+  border-color: #667eea;
 }
 .input-group {
   display: flex;

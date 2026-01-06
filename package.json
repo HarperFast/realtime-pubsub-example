@@ -1,10 +1,29 @@
 {
-  "name": "application-template",
+  "name": "harper-vue-mqtt-ledsign-demo",
   "version": "1.0.0",
-  "description": "A template for building HarperDB applications",
+  "description": "Real-time LED sign control with Harper and Vue.js",
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
+  },
   "dependencies": {
-    "mqtt": "^5.0.5"
+    "mqtt": "^5.0.5",
+    "vue": "^3.5.22"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-vue": "~10.4.0",
+    "globals": "^16.3.0",
+    "prettier": "3.6.2",
+    "vite": "^7.1.9",
+    "vite-plugin-vue-devtools": "^8.0.2"
   },
   "license": "Apache-2.0"
 }

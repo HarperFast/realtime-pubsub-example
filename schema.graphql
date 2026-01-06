@@ -1,9 +1,8 @@
-## Here we can define any tables in our database, which are mapped to topics for real-time
-## communication. This example shows how we define a type as a table using
-## the type name as the table name and specifying it is an "export" available to
-## MQTT, REST and other external protocols.
+## Topic table for MQTT state persistence
+## Maps MQTT topic paths to their current values
+## Harper automatically syncs between MQTT messages and this table
 type Topic @table @export {
-    id: ID @primaryKey # Here we define primary key (must be one)
-    name: String @indexed
-    category: String
+    topic: String @primaryKey # Full MQTT topic path (e.g., "led-sign/2FE598/message")
+    value: String # Current value for the topic
+    updated_at: DateTime # Last update timestamp
 }
