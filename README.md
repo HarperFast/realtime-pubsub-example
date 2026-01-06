@@ -22,8 +22,8 @@ graph TB
     end
 
     subgraph "Harper"
-        REST[REST API<br/>Topic CRUD]
-        DB[(Topic Table<br/>topic, value, updated_at)]
+        REST[REST API<br/>Topics CRUD]
+        DB[(Topics Table<br/>topic, value, updated_at)]
         MQTT[MQTT Broker<br/>Port 1883]
     end
 
@@ -56,14 +56,14 @@ graph TB
 
 **Write Path (User → LED Sign):**
 1. User changes value in Vue UI (optimistic update)
-2. Vue sends REST PUT to Harper `/Topic/{topic-path}`
-3. Harper persists to Topic table
+2. Vue sends REST PUT to Harper `/Topics/{topic-path}`
+3. Harper persists to Topics table
 4. Harper auto-publishes to MQTT topic
 5. LED sign receives MQTT message and updates
 
 **Read Path (LED Sign → User):**
 1. LED sign publishes state to Harper MQTT broker
-2. Harper updates Topic table automatically
+2. Harper updates Topics table automatically
 3. Harper sends SSE event to connected clients
 4. Vue receives update and syncs UI state
 
@@ -126,7 +126,7 @@ Configure your LED sign (ESP32 or similar) to connect to Harper's MQTT broker:
 ```
 .
 ├── config.yaml           # Harper configuration (REST & static files)
-├── schema.graphql        # Database schema (Topic table)
+├── schema.graphql        # Database schema (Topics table)
 ├── resources.js          # Custom resource logic (optional)
 ├── src/
 │   ├── App.vue          # Main Vue component
@@ -144,9 +144,9 @@ Configure your LED sign (ESP32 or similar) to connect to Harper's MQTT broker:
 Harper configuration specifying REST API, static file serving, and schema location.
 
 ### [schema.graphql](./schema.graphql)
-Database schema defining the Topic table for MQTT state persistence:
+Database schema defining the Topics table for MQTT state persistence:
 ```graphql
-type Topic @table @export {
+type Topics @table @export (name: "") {
   topic: String @primaryKey
   value: String
   updated_at: DateTime

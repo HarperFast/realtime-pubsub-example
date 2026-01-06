@@ -6,7 +6,7 @@
 
 ## Overview
 
-Refactor the Vue LED sign control interface to use Harper as the central data store and MQTT broker. The Vue component will read and write directly to Harper's database via REST API, with real-time updates via Server-Sent Events (SSE). Harper automatically syncs between its Topic table and MQTT messages.
+Refactor the Vue LED sign control interface to use Harper as the central data store and MQTT broker. The Vue component will read and write directly to Harper's database via REST API, with real-time updates via Server-Sent Events (SSE). Harper automatically syncs between its Topics table and MQTT messages.
 
 ## Goals
 
@@ -22,7 +22,7 @@ Refactor the Vue LED sign control interface to use Harper as the central data st
 
 1. **Harper (Database + MQTT Broker)**
    - Acts as MQTT broker (enabled by default)
-   - Persists MQTT state in Topic table
+   - Persists MQTT state in Topics table
    - Exposes REST API for CRUD operations
    - Provides SSE for real-time updates
    - Automatically syncs: MQTT ↔ Database
@@ -42,10 +42,10 @@ Refactor the Vue LED sign control interface to use Harper as the central data st
    - SSE provides real-time state sync
    - Same visual design, functional wiring
 
-### Topic Table Schema
+### Topics Table Schema
 
 ```graphql
-type Topic @table @export {
+type Topics @table @export (name: "") {
   topic: String @primaryKey
   value: String
   updated_at: DateTime
@@ -64,8 +64,8 @@ type Topic @table @export {
 
 1. **User Action** - User changes value in Vue UI (message, brightness, power)
 2. **Optimistic Update** - Vue immediately updates local state for instant feedback
-3. **REST API Call** - Vue sends `PUT /Topic/<topic-path>` with new value
-4. **Harper Persists** - Harper updates Topic table in database
+3. **REST API Call** - Vue sends `PUT /Topics/<topic-path>` with new value
+4. **Harper Persists** - Harper updates Topics table in database
 5. **MQTT Publish** - Harper automatically publishes to MQTT topic
 6. **LED Sign Updates** - Sign receives MQTT message and updates display/state
 
@@ -73,7 +73,7 @@ type Topic @table @export {
 ```
 User types "Hello World" →
 Vue updates UI immediately →
-PUT /Topic/led-sign/2FE598/message { value: "Hello World" } →
+PUT /Topics/led-sign/2FE598/message { value: "Hello World" } →
 Harper saves to database →
 Harper publishes to MQTT topic led-sign/2FE598/message →
 LED sign receives and displays message
@@ -84,7 +84,7 @@ LED sign receives and displays message
 1. **LED Sign Publishes** - Sign publishes state to Harper MQTT broker
    - On startup, state change, or periodic heartbeat
 2. **Harper Receives** - Harper's MQTT broker receives message
-3. **Database Update** - Harper automatically updates Topic table
+3. **Database Update** - Harper automatically updates Topics table
 4. **SSE Broadcast** - Harper sends update event to connected SSE clients
 5. **Vue Receives** - Vue's SSE listener receives update event
 6. **UI Sync** - Vue updates component state to match actual sign state
@@ -93,7 +93,7 @@ LED sign receives and displays message
 ```
 LED sign boots up →
 Publishes "on" to led-sign/2FE598/power →
-Harper updates Topic table →
+Harper updates Topics table →
 SSE event sent to Vue →
 Vue updates power toggle to ON
 ```
@@ -111,7 +111,7 @@ On Vue component mount:
 
 **1. Update schema.graphql:**
 ```graphql
-type Topic @table @export {
+type Topics @table @export (name: "") {
   topic: String @primaryKey
   value: String
   updated_at: DateTime

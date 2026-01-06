@@ -102,7 +102,7 @@ export default {
   methods: {
     async discoverSigns() {
       try {
-        const response = await fetch(`${this.harperUrl}/Topic`)
+        const response = await fetch(`${this.harperUrl}/Topics`)
         if (!response.ok) throw new Error('Failed to fetch topics')
 
         const topics = await response.json()
@@ -150,7 +150,7 @@ export default {
 
     async getTopic(topic) {
       try {
-        const response = await fetch(`${this.harperUrl}/Topic/${encodeURIComponent(topic)}`)
+        const response = await fetch(`${this.harperUrl}/Topics/${encodeURIComponent(topic)}`)
         if (!response.ok) return null
         return await response.json()
       } catch (error) {
@@ -161,7 +161,7 @@ export default {
 
     async updateTopic(topic, value) {
       try {
-        const response = await fetch(`${this.harperUrl}/Topic/${encodeURIComponent(topic)}`, {
+        const response = await fetch(`${this.harperUrl}/Topics/${encodeURIComponent(topic)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ topic, value, updated_at: new Date().toISOString() })
@@ -199,7 +199,7 @@ export default {
 
     setupSSE() {
       try {
-        this.sseConnection = new EventSource(`${this.harperUrl}/subscribe?table=Topic`)
+        this.sseConnection = new EventSource(`${this.harperUrl}/subscribe?table=Topics`)
 
         this.sseConnection.onmessage = (event) => {
           try {

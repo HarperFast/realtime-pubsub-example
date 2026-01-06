@@ -5,7 +5,7 @@
  * No custom MQTT client code needed - Harper does it all!
  */
 
-// Optional: Extend Topic table behavior if needed
-// export class Topic extends tables.Topic {
+// Optional: Extend Topics table behavior if needed
+// export class Topics extends tables.Topics {
 //   // Custom logic here
 // }
