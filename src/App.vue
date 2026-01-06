@@ -24,7 +24,7 @@
           </select>
         </div>
 
-        <div class="section" v-if="selectedSignId">
+        <div class="section" :class="{ inactive: !selectedSignId }">
           <div class="section-title">Display Message</div>
           <div class="input-group">
             <input
@@ -32,14 +32,15 @@
               v-model="message"
               placeholder="Enter your message..."
               @keyup.enter="sendMessage"
+              :disabled="!selectedSignId"
             >
-            <button class="btn" @click="sendMessage">Send</button>
+            <button class="btn" @click="sendMessage" :disabled="!selectedSignId">Send</button>
           </div>
           <div class="current-message-label">Current Message:</div>
-          <div class="current-message">{{ currentMessage }}</div>
+          <div class="current-message">{{ currentMessage || 'No message' }}</div>
         </div>
 
-        <div class="section" v-if="selectedSignId">
+        <div class="section" :class="{ inactive: !selectedSignId }">
           <div class="section-title">Brightness</div>
           <div class="brightness-control">
             <div class="slider-container">
@@ -49,18 +50,19 @@
                 max="15"
                 v-model="brightness"
                 @input="updateBrightness"
+                :disabled="!selectedSignId"
               >
             </div>
             <div class="brightness-value">{{ brightness }}</div>
           </div>
         </div>
 
-        <div class="section" v-if="selectedSignId">
+        <div class="section" :class="{ inactive: !selectedSignId }">
           <div class="section-title">Display Power</div>
           <div class="toggle-container">
             <div
               class="toggle-switch"
-              :class="{ off: !displayPower }"
+              :class="{ off: !displayPower, disabled: !selectedSignId }"
               @click="togglePower"
             >
               <div class="toggle-knob"></div>
@@ -187,10 +189,9 @@ export default {
     },
 
     async togglePower() {
+      if (!this.selectedSignId) return
       this.displayPower = !this.displayPower
-      if (this.selectedSignId) {
-        await this.updateTopic(this.buildTopic('power'), this.displayPower ? 'on' : 'off')
-      }
+      await this.updateTopic(this.buildTopic('power'), this.displayPower ? 'on' : 'off')
     },
 
     async onSignChange() {
@@ -300,9 +301,16 @@ body {
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
+  transition: opacity 0.3s, filter 0.3s;
 }
 .section:last-child {
   margin-bottom: 0;
+}
+.section.inactive {
+  opacity: 0.5;
+  filter: grayscale(50%);
+  pointer-events: none;
+  user-select: none;
 }
 .section-title {
   font-size: 16px;
@@ -344,6 +352,10 @@ input[type="text"]:focus {
 input[type="text"]::placeholder {
   color: #9ca3af;
 }
+input[type="text"]:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
 .btn {
   padding: 12px 24px;
   background: #667eea;
@@ -355,11 +367,16 @@ input[type="text"]::placeholder {
   cursor: pointer;
   transition: background 0.2s;
 }
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: #5568d3;
 }
-.btn:active {
+.btn:active:not(:disabled) {
   transform: scale(0.98);
+}
+.btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .current-message {
   background: white;
@@ -392,6 +409,10 @@ input[type="range"] {
   outline: none;
   -webkit-appearance: none;
 }
+input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -402,6 +423,10 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+input[type="range"]:disabled::-webkit-slider-thumb {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
 input[type="range"]::-moz-range-thumb {
   width: 20px;
   height: 20px;
@@ -410,6 +435,10 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+input[type="range"]:disabled::-moz-range-thumb {
+  background: #cbd5e1;
+  cursor: not-allowed;
 }
 .brightness-value {
   min-width: 30px;
@@ -434,6 +463,10 @@ input[type="range"]::-moz-range-thumb {
 }
 .toggle-switch.off {
   background: #cbd5e1;
+}
+.toggle-switch.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .toggle-knob {
   position: absolute;
