@@ -16,7 +16,7 @@ Real-time LED sign control system built with [Harper](https://www.harperdb.io/) 
 
 ```mermaid
 graph TB
-    UI[User Interface<br/>Message/Brightness/Power Controls]
+    UI[Vue UI<br/>Message/Brightness/Power Controls]
 
     subgraph "Harper Server"
         HARPER["Harper<br/>━━━━━━━━━━━━━━━━<br/>HTTP/REST :9926<br/>SSE/WS :9926<br/>MQTT :1883<br/>MQTTS :8883"]
@@ -24,13 +24,15 @@ graph TB
         HARPER <-->|Auto-sync| DB
     end
 
-    SIGN1[LED Sign 2FE598<br/>ESP32/Hardware]
+    SIGN1[LED Sign 2FE598<br/>ESP32/Hardware<br/>HTTP :80]
     SIGN2[LED Sign XXXXXX<br/>ESP32/Hardware]
+    BROWSER[Browser<br/>Direct Control]
 
     UI -->|"HTTP PUT :9926<br/>/Topics/{topic}"| HARPER
     UI -->|"SSE :9926<br/>/subscribe?table=Topics"| HARPER
     HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN1
     HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN2
+    BROWSER -.->|"HTTP :80<br/>Direct control"| SIGN1
     SIGN1 ~~~ SIGN2
 
     style UI fill:#9f7aea,stroke:#6b46c1,color:#fff
@@ -38,6 +40,7 @@ graph TB
     style DB fill:#48bb78,stroke:#2f855a,color:#fff
     style SIGN1 fill:#f56565,stroke:#c53030,color:#fff
     style SIGN2 fill:#f56565,stroke:#c53030,color:#fff
+    style BROWSER fill:#cbd5e1,stroke:#94a3b8,color:#64748b,opacity:0.5
 ```
 
 ### Data Flow

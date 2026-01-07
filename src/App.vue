@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="logo-container">
-      <img src="/public/harper-logo.png" alt="Harper Logo">
+      <img src="/public/harper-logo.png" alt="Harper Logo" />
     </div>
 
     <div class="card">
@@ -23,11 +23,19 @@
               placeholder="Enter your message..."
               @keyup.enter="sendMessage"
               :disabled="!selectedSignId"
+            />
+            <button
+              class="btn"
+              @click="sendMessage"
+              :disabled="!selectedSignId"
             >
-            <button class="btn" @click="sendMessage" :disabled="!selectedSignId">Send</button>
+              Send
+            </button>
           </div>
           <div class="current-message-label">Current Message:</div>
-          <div class="current-message">{{ currentMessage || 'No message' }}</div>
+          <div class="current-message">
+            {{ currentMessage || "No message" }}
+          </div>
         </div>
 
         <div class="section" :class="{ inactive: !selectedSignId }">
@@ -41,7 +49,7 @@
                 v-model="brightness"
                 @input="updateBrightness"
                 :disabled="!selectedSignId"
-              >
+              />
             </div>
             <div class="brightness-value">{{ brightness }}</div>
           </div>
@@ -58,16 +66,24 @@
               <div class="toggle-knob"></div>
             </div>
             <div class="toggle-label" :class="{ off: !displayPower }">
-              {{ displayPower ? 'ON' : 'OFF' }}
+              {{ displayPower ? "ON" : "OFF" }}
             </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">LED Sign</div>
-          <select v-model="selectedSignId" @change="onSignChange" class="sign-selector">
+          <select
+            v-model="selectedSignId"
+            @change="onSignChange"
+            class="sign-selector"
+          >
             <option value="" disabled>Select a sign...</option>
-            <option v-for="signId in availableSigns" :key="signId" :value="signId">
+            <option
+              v-for="signId in availableSigns"
+              :key="signId"
+              :value="signId"
+            >
               LED Sign {{ signId }}
             </option>
           </select>
@@ -79,155 +95,173 @@
 
 <script>
 export default {
-  name: 'App',
+  name: "App",
   data() {
     return {
-      harperUrl: import.meta.env.VITE_HARPER_URL || 'http://localhost:9926',
+      harperUrl: import.meta.env.VITE_HARPER_URL || "http://localhost:9926",
       availableSigns: [],
-      selectedSignId: '',
-      message: '',
-      currentMessage: '',
+      selectedSignId: "",
+      message: "",
+      currentMessage: "",
       brightness: 8,
       displayPower: false,
-      sseConnection: null
-    }
+      sseConnection: null,
+    };
   },
   async mounted() {
-    await this.discoverSigns()
-    this.setupSSE()
+    await this.discoverSigns();
+    this.setupSSE();
   },
   beforeUnmount() {
     if (this.sseConnection) {
-      this.sseConnection.close()
+      this.sseConnection.close();
     }
   },
   methods: {
     async discoverSigns() {
       try {
-        const response = await fetch(`${this.harperUrl}/Topics/`)
-        if (!response.ok) throw new Error('Failed to fetch topics')
+        const response = await fetch(`${this.harperUrl}/Topics/`);
+        if (!response.ok) throw new Error("Failed to fetch topics");
 
-        const topics = await response.json()
-        const signIds = new Set()
+        const topics = await response.json();
+        const signIds = new Set();
 
-        topics.forEach(topic => {
-          const match = topic.topic?.match(/^led-sign\/([^/]+)\//)
+        topics.forEach((topic) => {
+          const match = topic.topic?.match(/^led-sign\/([^/]+)\//);
           if (match) {
-            signIds.add(match[1])
+            signIds.add(match[1]);
           }
-        })
+        });
 
-        this.availableSigns = Array.from(signIds).sort()
+        this.availableSigns = Array.from(signIds).sort();
 
         if (this.availableSigns.length > 0 && !this.selectedSignId) {
-          this.selectedSignId = this.availableSigns[0]
-          await this.loadSignState()
+          this.selectedSignId = this.availableSigns[0];
+          await this.loadSignState();
         }
       } catch (error) {
-        console.error('Error discovering signs:', error)
+        console.error("Error discovering signs:", error);
       }
     },
 
     buildTopic(property) {
-      return `led-sign/${this.selectedSignId}/${property}`
+      return `led-sign/${this.selectedSignId}/${property}`;
     },
 
     async loadSignState() {
-      if (!this.selectedSignId) return
+      if (!this.selectedSignId) return;
 
       try {
         const [messageData, brightData, powerData] = await Promise.all([
-          this.getTopic(this.buildTopic('message')),
-          this.getTopic(this.buildTopic('brightness')),
-          this.getTopic(this.buildTopic('power'))
-        ])
+          this.getTopic(this.buildTopic("message")),
+          this.getTopic(this.buildTopic("brightness")),
+          this.getTopic(this.buildTopic("power")),
+        ]);
 
-        if (messageData?.value) this.currentMessage = messageData.value
-        if (brightData?.value) this.brightness = parseInt(brightData.value) || 8
-        if (powerData?.value) this.displayPower = powerData.value === 'on'
+        if (messageData?.value) this.currentMessage = messageData.value;
+        if (brightData?.value)
+          this.brightness = parseInt(brightData.value) || 8;
+        if (powerData?.value) this.displayPower = powerData.value === "on";
       } catch (error) {
-        console.error('Error loading sign state:', error)
+        console.error("Error loading sign state:", error);
       }
     },
 
     async getTopic(topic) {
       try {
-        const response = await fetch(`${this.harperUrl}/Topics/${encodeURIComponent(topic)}/`)
-        if (!response.ok) return null
-        return await response.json()
+        const response = await fetch(
+          `${this.harperUrl}/Topics/${encodeURIComponent(topic)}/`,
+        );
+        if (!response.ok) return null;
+        return await response.json();
       } catch (error) {
-        console.error('Error fetching topic:', error)
-        return null
+        console.error("Error fetching topic:", error);
+        return null;
       }
     },
 
     async updateTopic(topic, value) {
       try {
-        const response = await fetch(`${this.harperUrl}/Topics/${encodeURIComponent(topic)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic, value, updated_at: new Date().toISOString() })
-        })
-        if (!response.ok) throw new Error('Failed to update topic')
+        const response = await fetch(
+          `${this.harperUrl}/Topics/${encodeURIComponent(topic)}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic,
+              value,
+              updated_at: new Date().toISOString(),
+            }),
+          },
+        );
+        if (!response.ok) throw new Error("Failed to update topic");
       } catch (error) {
-        console.error('Error updating topic:', error)
+        console.error("Error updating topic:", error);
       }
     },
 
     async sendMessage() {
       if (this.message.trim() && this.selectedSignId) {
-        this.currentMessage = this.message
-        await this.updateTopic(this.buildTopic('message'), this.message)
-        this.message = ''
+        this.currentMessage = this.message;
+        await this.updateTopic(this.buildTopic("message"), this.message);
+        this.message = "";
       }
     },
 
     async updateBrightness() {
       if (this.selectedSignId) {
-        await this.updateTopic(this.buildTopic('brightness'), this.brightness.toString())
+        await this.updateTopic(
+          this.buildTopic("brightness"),
+          this.brightness.toString(),
+        );
       }
     },
 
     async togglePower() {
-      if (!this.selectedSignId) return
-      this.displayPower = !this.displayPower
-      await this.updateTopic(this.buildTopic('power'), this.displayPower ? 'on' : 'off')
+      if (!this.selectedSignId) return;
+      this.displayPower = !this.displayPower;
+      await this.updateTopic(
+        this.buildTopic("power"),
+        this.displayPower ? "on" : "off",
+      );
     },
 
     async onSignChange() {
-      await this.loadSignState()
+      await this.loadSignState();
     },
 
     setupSSE() {
       try {
-        this.sseConnection = new EventSource(`${this.harperUrl}/subscribe?table=Topics`)
+        this.sseConnection = new EventSource(
+          `${this.harperUrl}/subscribe?table=Topics`,
+        );
 
         this.sseConnection.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data)
-            if (!data.topic || !this.selectedSignId) return
+            const data = JSON.parse(event.data);
+            if (!data.topic || !this.selectedSignId) return;
 
-            if (data.topic === this.buildTopic('message')) {
-              this.currentMessage = data.value || ''
-            } else if (data.topic === this.buildTopic('brightness')) {
-              this.brightness = parseInt(data.value) || 8
-            } else if (data.topic === this.buildTopic('power')) {
-              this.displayPower = data.value === 'on'
+            if (data.topic === this.buildTopic("message")) {
+              this.currentMessage = data.value || "";
+            } else if (data.topic === this.buildTopic("brightness")) {
+              this.brightness = parseInt(data.value) || 8;
+            } else if (data.topic === this.buildTopic("power")) {
+              this.displayPower = data.value === "on";
             }
           } catch (error) {
-            console.error('Error parsing SSE message:', error)
+            console.error("Error parsing SSE message:", error);
           }
-        }
+        };
 
         this.sseConnection.onerror = (error) => {
-          console.error('SSE error:', error)
-        }
+          console.error("SSE error:", error);
+        };
       } catch (error) {
-        console.error('Error setting up SSE:', error)
+        console.error("Error setting up SSE:", error);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style>
@@ -237,7 +271,9 @@ export default {
   box-sizing: border-box;
 }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   display: flex;
@@ -265,7 +301,11 @@ body {
   overflow: hidden;
 }
 .card-header {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.9) 0%,
+    rgba(118, 75, 162, 0.9) 100%
+  );
   color: white;
   padding: 30px;
   text-align: center;
@@ -290,8 +330,13 @@ body {
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 .card-body {
   padding: 30px;
@@ -301,7 +346,9 @@ body {
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
-  transition: opacity 0.3s, filter 0.3s;
+  transition:
+    opacity 0.3s,
+    filter 0.3s;
 }
 .section:last-child {
   margin-bottom: 0;

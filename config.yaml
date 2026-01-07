@@ -7,16 +7,7 @@ rest: true
 
 # These reads GraphQL schemas to define the schema of database/tables/attributes.
 graphqlSchema:  
-  files: '*.graphql'
-
-# Loads JavaScript modules such that their exports are exported as resources
-jsResource: 
-  files: resources.js 
-
-# This loads files that define fastify routes using fastify's auto-loader
-# fastifyRoutes: 
-#   files: routes/*.cjs # specify the location of route definition modules
-#   path: . # relative to the app-name, like  http://server/app-name/route-name
+  files: 'schema.graphql'
 
 # This allows static files to be directly accessible
 static: 
