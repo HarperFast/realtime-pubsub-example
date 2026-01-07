@@ -1,8 +1,13 @@
+type CatchAll @table @export (name: "") {
+    id: ID @primaryKey
+    data: JSON
+}
+
 ## Topics table for MQTT state persistence
 ## Maps MQTT topic paths to their current values
 ## Harper automatically syncs between MQTT messages and this table
-type Topics @table @export (name: "") {
+type Topics @table @export {
     topic: String @primaryKey # Full MQTT topic path (e.g., "led-sign/2FE598/message")
     value: String # Current value for the topic
-    updated_at: DateTime # Last update timestamp
+    updated_at: Date # Last update timestamp
 }

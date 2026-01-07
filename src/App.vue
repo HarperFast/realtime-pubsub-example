@@ -104,7 +104,7 @@ export default {
   methods: {
     async discoverSigns() {
       try {
-        const response = await fetch(`${this.harperUrl}/Topics`)
+        const response = await fetch(`${this.harperUrl}/Topics/`)
         if (!response.ok) throw new Error('Failed to fetch topics')
 
         const topics = await response.json()
@@ -152,7 +152,7 @@ export default {
 
     async getTopic(topic) {
       try {
-        const response = await fetch(`${this.harperUrl}/Topics/${encodeURIComponent(topic)}`)
+        const response = await fetch(`${this.harperUrl}/Topics/${encodeURIComponent(topic)}/`)
         if (!response.ok) return null
         return await response.json()
       } catch (error) {

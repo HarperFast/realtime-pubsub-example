@@ -21,4 +21,4 @@ jsResource:
 # This allows static files to be directly accessible
 static: 
   files: 'dist/**'
-  # urlPath: 'vue-mqtt'
+  urlPath: 'app'

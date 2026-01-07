@@ -16,9 +16,7 @@ Real-time LED sign control system built with [Harper](https://www.harperdb.io/) 
 
 ```mermaid
 graph TB
-    subgraph "Vue Frontend"
-        UI[User Interface<br/>Message/Brightness/Power Controls]
-    end
+    UI[User Interface<br/>Message/Brightness/Power Controls]
 
     subgraph "Harper Server"
         HARPER["Harper<br/>━━━━━━━━━━━━━━━━<br/>HTTP/REST :9926<br/>SSE/WS :9926<br/>MQTT :1883<br/>MQTTS :8883"]
@@ -26,15 +24,14 @@ graph TB
         HARPER <-->|Auto-sync| DB
     end
 
-    subgraph "LED Signs"
-        SIGN1[LED Sign 2FE598<br/>ESP32/Hardware]
-        SIGN2[LED Sign XXXXXX<br/>ESP32/Hardware]
-    end
+    SIGN1[LED Sign 2FE598<br/>ESP32/Hardware]
+    SIGN2[LED Sign XXXXXX<br/>ESP32/Hardware]
 
     UI -->|"HTTP PUT :9926<br/>/Topics/{topic}"| HARPER
     UI -->|"SSE :9926<br/>/subscribe?table=Topics"| HARPER
     HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN1
     HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN2
+    SIGN1 ~~~ SIGN2
 
     style UI fill:#9f7aea,stroke:#6b46c1,color:#fff
     style HARPER fill:#4299e1,stroke:#2c5282,color:#fff
