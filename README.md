@@ -40,7 +40,7 @@ graph TB
     style DB fill:#48bb78,stroke:#2f855a,color:#fff
     style SIGN1 fill:#f56565,stroke:#c53030,color:#fff
     style SIGN2 fill:#f56565,stroke:#c53030,color:#fff
-    style BROWSER fill:#cbd5e1,stroke:#94a3b8,color:#64748b,opacity:0.5
+    style BROWSER fill:#94a3b8,stroke:#64748b,color:#1e293b,opacity:0.7
 ```
 
 ### Data Flow
