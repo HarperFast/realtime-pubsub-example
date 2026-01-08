@@ -15,32 +15,72 @@ Real-time LED sign control system built with [Harper](https://www.harperdb.io/) 
 ## Architecture
 
 ```mermaid
-graph TB
-    UI[Vue UI<br/>Message/Brightness/Power Controls]
+%%{init: {'themeVariables': { 'edgeLabelBackground': 'transparent'}}}%%
+flowchart TB
 
-    subgraph "Harper Server"
-        HARPER["Harper<br/>━━━━━━━━━━━━━━━━<br/>HTTP/REST :9926<br/>SSE/WS :9926<br/>MQTT :1883<br/>MQTTS :8883"]
-        DB[(Topics Table<br/>topic, value, updated_at)]
-        HARPER <-->|Auto-sync| DB
-    end
+BROWSER[Browser<br/>Direct Control]
 
-    SIGN1[LED Sign 2FE598<br/>ESP32/Hardware<br/>HTTP :80]
-    SIGN2[LED Sign XXXXXX<br/>ESP32/Hardware]
-    BROWSER[Browser<br/>Direct Control]
+subgraph HARPER["Harper"]
+  direction BT
+  
+  subgraph APPLICATION["Application"]
+     UI[Vue UI<br/>Message:String<br/>Brightness:Integer<br/>Power Controls:on or off]
+  end
+  
+  subgraph MESSAGING["Messaging"]
+     MQTT["MQTT/MQTTS<br/>Ports: 1883,8883"]
+     9926["HTTP/REST/SSE/WS<br/>Port: 9926"]
+  end
 
-    UI -->|"HTTP PUT :9926<br/>/Topics/{topic}"| HARPER
-    UI -->|"SSE :9926<br/>/subscribe?table=Topics"| HARPER
-    HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN1
-    HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN2
-    BROWSER -.->|"HTTP :80<br/>Direct control"| SIGN1
-    SIGN1 ~~~ SIGN2
+  subgraph CACHING["Caching<br/>(Not Used)"]
+     CACHE["Cache"]
+  end
 
-    style UI fill:#9f7aea,stroke:#6b46c1,color:#fff
-    style HARPER fill:#4299e1,stroke:#2c5282,color:#fff
-    style DB fill:#48bb78,stroke:#2f855a,color:#fff
-    style SIGN1 fill:#f56565,stroke:#c53030,color:#fff
-    style SIGN2 fill:#f56565,stroke:#c53030,color:#fff
-    style BROWSER fill:#94a3b8,stroke:#64748b,color:#1e293b,opacity:0.7
+  subgraph DATABASE["Database"]
+     DB[(Topics Table<br/>- topic<br/>- value<br/>- updated_at)]
+  end
+
+  CACHING  <-.-> | | APPLICATION
+  %% DATABASE <--> | | APPLICATION
+  DATABASE <--> | | MESSAGING
+  DATABASE <-.-> | | CACHING
+end
+
+SIGN1[LED Sign X]
+SIGN2[LED Sign 2FE598]
+
+UI --> |"HTTP PUT :9926<br/>/Topics/{topic}"| 9926
+9926 --> |"SSE :9926<br/>/subscribe?table=Topics"| UI
+
+BROWSER <-.-> |"HTTP :80 (Direct Control)"| SIGN2
+BROWSER <-.-> |"HTTP :9926"|HARPER
+
+HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN1
+HARPER <-->|"MQTT :1883<br/>led-sign/#"| SIGN2
+
+UI@{ shape : rounded }
+SIGN1@{ shape : rounded }
+SIGN2@{ shape : rounded }
+9926@{ shape : rounded }
+MQTT@{ shape : rounded }
+BROWSER@{ shape : rounded }
+
+linkStyle default stroke-width:2px,fille:none,stroke:#fff
+CACHE@{ shape: rounded }
+style HARPER fill:#9B61FC,stroke:#000000,color:#ffffff
+style APPLICATION fill:#c3a1ff,stroke:#000000,color:#ffffff
+style CACHING fill:#c3a1ff,stroke:#000000,color:#ffffff
+style MESSAGING fill:#c3a1ff,stroke:#000000,color:#ffffff
+style DATABASE fill:#c3a1ff,stroke:#000000,color:#ffffff
+style DB fill:#48bb78,stroke:#2f855a,color:#fff
+style SIGN1 fill:#5d85fc,stroke:#000000,color:#fff
+style SIGN2 fill:#5d85fc,stroke:#000000,color:#fff
+style BROWSER fill:#fcb45d,stroke:#64748b,color:#1e293b,opacity:0.7
+style UI fill:#7221ff,stroke:#fff,color:#fff
+style CACHE fill:#7221ff,stroke:#fff,color:#fff
+style DB fill:#7221ff,stroke:#fff,color:#fff
+style 9926 fill:#7221ff,stroke:#fff,color:#fff
+style MQTT fill:#7221ff,stroke:#fff,color:#fff
 ```
 
 ### Data Flow
