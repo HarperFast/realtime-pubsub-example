@@ -65,7 +65,7 @@ SIGN2@{ shape : rounded }
 MQTT@{ shape : rounded }
 BROWSER@{ shape : rounded }
 
-linkStyle default stroke-width:2px,fille:none,stroke:#000
+linkStyle default stroke-width:2px,fill:none,stroke:#000,color:#fff
 CACHE@{ shape: rounded }
 style HARPER fill:#9B61FC,stroke:#000000,color:#ffffff
 style APPLICATION fill:#c3a1ff,stroke:#000000,color:#ffffff
