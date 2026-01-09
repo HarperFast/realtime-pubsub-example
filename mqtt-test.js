@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import * as mqtt from "mqtt";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import * as mqtt from 'mqtt';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 // Load .env file
 const __filename = fileURLToPath(import.meta.url);
@@ -11,24 +11,24 @@ const __dirname = dirname(__filename);
 const envPath = join(__dirname, '.env');
 
 let config = {
-  MQTT_HOST: 'mqtt://localhost:1883',  // Harper's MQTT broker
-  DEVICE_NAME: 'led-sign',
-  DEVICE_ID: '2FE598'
+	MQTT_HOST: 'mqtt://localhost:1883', // Harper's MQTT broker
+	DEVICE_NAME: 'led-sign',
+	DEVICE_ID: '2FE598',
 };
 
 try {
-  const envContent = readFileSync(envPath, 'utf-8');
-  envContent.split('\n').forEach(line => {
-    line = line.trim();
-    if (line && !line.startsWith('#')) {
-      const [key, ...valueParts] = line.split('=');
-      if (key && valueParts.length) {
-        config[key.trim()] = valueParts.join('=').trim();
-      }
-    }
-  });
-} catch (err) {
-  console.warn('Warning: Could not load .env file, using defaults');
+	const envContent = readFileSync(envPath, 'utf-8');
+	envContent.split('\n').forEach((line) => {
+		line = line.trim();
+		if (line && !line.startsWith('#')) {
+			const [key, ...valueParts] = line.split('=');
+			if (key && valueParts.length) {
+				config[key.trim()] = valueParts.join('=').trim();
+			}
+		}
+	});
+} catch {
+	console.warn('Warning: Could not load .env file, using defaults');
 }
 
 // Parse command line arguments
@@ -37,36 +37,36 @@ let subject = null;
 let payload = null;
 
 for (let i = 0; i < args.length; i++) {
-  const arg = args[i];
+	const arg = args[i];
 
-  if (arg === '-m' && args[i + 1]) {
-    subject = 'message';
-    payload = args[i + 1];
-    i++;
-  } else if (arg === '-p' && args[i + 1]) {
-    subject = 'power';
-    const powerState = args[i + 1].toLowerCase();
-    if (powerState !== 'on' && powerState !== 'off') {
-      console.error('Error: power must be "on" or "off"');
-      process.exit(1);
-    }
-    payload = powerState;
-    i++;
-  } else if (arg === '-b' && args[i + 1]) {
-    subject = 'brightness';
-    const level = parseInt(args[i + 1]);
-    if (isNaN(level) || level < 0 || level > 15) {
-      console.error('Error: brightness must be a number between 0 and 15');
-      process.exit(1);
-    }
-    payload = level.toString();
-    i++;
-  }
+	if (arg === '-m' && args[i + 1]) {
+		subject = 'message';
+		payload = args[i + 1];
+		i++;
+	} else if (arg === '-p' && args[i + 1]) {
+		subject = 'power';
+		const powerState = args[i + 1].toLowerCase();
+		if (powerState !== 'on' && powerState !== 'off') {
+			console.error('Error: power must be "on" or "off"');
+			process.exit(1);
+		}
+		payload = powerState;
+		i++;
+	} else if (arg === '-b' && args[i + 1]) {
+		subject = 'brightness';
+		const level = parseInt(args[i + 1]);
+		if (isNaN(level) || level < 0 || level > 15) {
+			console.error('Error: brightness must be a number between 0 and 15');
+			process.exit(1);
+		}
+		payload = level.toString();
+		i++;
+	}
 }
 
 // Validate required parameters
 if (!subject || !payload) {
-  console.error(`
+	console.error(`
 Usage: node mqtt-test.js [OPTION]
 
 Configuration is loaded from .env file:
@@ -84,7 +84,7 @@ Examples:
   node mqtt-test.js -p on
   node mqtt-test.js -b 10
 `);
-  process.exit(1);
+	process.exit(1);
 }
 
 // Build topic from configuration
@@ -97,34 +97,34 @@ console.log(`Connecting to ${host}...`);
 const client = mqtt.connect(host);
 
 client.on('connect', () => {
-  console.log('✓ Connected to MQTT broker');
-  console.log(`Publishing to topic: ${topic}`);
-  console.log(`Payload: ${payload}`);
+	console.log('✓ Connected to MQTT broker');
+	console.log(`Publishing to topic: ${topic}`);
+	console.log(`Payload: ${payload}`);
 
-  client.publish(topic, payload, { qos: 1 }, (err) => {
-    if (err) {
-      console.error('✗ Publish error:', err);
-      process.exit(1);
-    } else {
-      console.log('✓ Message published successfully');
-      client.end();
-      process.exit(0);
-    }
-  });
+	client.publish(topic, payload, { qos: 1 }, (err) => {
+		if (err) {
+			console.error('✗ Publish error:', err);
+			process.exit(1);
+		} else {
+			console.log('✓ Message published successfully');
+			client.end();
+			process.exit(0);
+		}
+	});
 });
 
 client.on('error', (err) => {
-  console.error('✗ Connection error:', err.message);
-  process.exit(1);
+	console.error('✗ Connection error:', err.message);
+	process.exit(1);
 });
 
 client.on('close', () => {
-  console.log('Connection closed');
+	console.log('Connection closed');
 });
 
 // Timeout after 10 seconds
 setTimeout(() => {
-  console.error('✗ Connection timeout');
-  client.end();
-  process.exit(1);
+	console.error('✗ Connection timeout');
+	client.end();
+	process.exit(1);
 }, 10000);

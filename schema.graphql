@@ -1,8 +1,8 @@
 ## Topics table for MQTT state persistence
 ## Maps MQTT topic paths to their current values
 ## Harper automatically syncs between MQTT messages and this table
-type Topics @table @export (name: ""){
-    topic: String @primaryKey # Full MQTT topic path (e.g., "led-sign/2FE598/message")
-    value: String # Current value for the topic
-    updated_at: Date @updatedTime @indexed# Last update timestamp
+type Topics @table @export(name: "") {
+	topic: String @primaryKey # Full MQTT topic path (e.g., "led-sign/2FE598/message")
+	value: String # Current value for the topic
+	updated_at: Date @updatedTime @indexed # Last update timestamp
 }
