@@ -66,11 +66,13 @@ suite('Real-time transports', (ctx: ContextWithHarper) => {
       reconnectPeriod: 0,
     });
 
+    // Harper maps an MQTT topic to a Topics record whose primary key is the topic path.
+    // Publishing the record body as JSON populates the `value` column.
     await withTimeout(
       new Promise<void>((resolve, reject) => {
         client.on('error', reject);
         client.on('connect', () => {
-          client.publish(topic, value, { qos: 1, retain: true }, (err) => {
+          client.publish(topic, JSON.stringify({ value }), { qos: 1, retain: true }, (err) => {
             if (err) reject(err);
             else resolve();
           });
@@ -81,20 +83,27 @@ suite('Real-time transports', (ctx: ContextWithHarper) => {
     );
     client.end(true);
 
-    // Poll the REST API until the MQTT-published value is persisted.
+    // Poll the REST API until the MQTT-published value is persisted. Read the body as
+    // text and tolerate either a JSON record ({ value }) or a bare value serialization.
     const auth = basicAuth(admin.username, admin.password);
-    let persisted: { value?: string } | undefined;
-    for (let i = 0; i < 30; i++) {
+    let persistedValue: string | undefined;
+    for (let i = 0; i < 40; i++) {
       const res = await fetch(`${httpURL}/Topics/${encodeURIComponent(topic)}`, {
         headers: { Authorization: auth },
       });
       if (res.status === 200) {
-        persisted = (await res.json()) as { value?: string };
-        if (persisted.value === value) break;
+        const text = await res.text();
+        try {
+          const rec = JSON.parse(text) as { value?: string };
+          persistedValue = typeof rec === 'object' && rec !== null ? rec.value : (rec as unknown as string);
+        } catch {
+          persistedValue = text;
+        }
+        if (persistedValue === value) break;
       }
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 250));
     }
-    strictEqual(persisted?.value, value, 'MQTT-published value should be persisted in Topics and served over REST');
+    strictEqual(persistedValue, value, 'MQTT-published value should be persisted in Topics and served over REST');
   });
 
   test('MQTT (WebSocket): subscriber receives a retained message published over WS', async () => {
@@ -136,7 +145,9 @@ suite('Real-time transports', (ctx: ContextWithHarper) => {
     );
     client.end(true);
 
-    strictEqual(received, value, 'WebSocket MQTT subscriber should receive the retained topic value');
+    // Harper delivers the full Topics record (as JSON) as the MQTT message payload.
+    const record = JSON.parse(received) as { value?: string };
+    strictEqual(record.value, value, 'WebSocket MQTT subscriber should receive the retained topic value');
   });
 
   test('SSE: REST resource streams a live update when the record changes', async () => {
