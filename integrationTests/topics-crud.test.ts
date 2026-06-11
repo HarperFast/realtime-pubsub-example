@@ -48,11 +48,12 @@ suite('Topics CRUD', (ctx: ContextWithHarper) => {
     const { admin, httpURL } = ctx.harper;
     const auth = basicAuth(admin.username, admin.password);
 
-    await fetch(`${httpURL}/Topics/test-sensor-read`, {
+    const setupRes = await fetch(`${httpURL}/Topics/test-sensor-read`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: auth },
       body: JSON.stringify({ topic: 'test-sensor-read', value: '42' }),
     });
+    ok(setupRes.ok, `setup PUT failed: HTTP ${setupRes.status}`);
 
     const getRes = await fetch(`${httpURL}/Topics/test-sensor-read`, {
       headers: { Authorization: auth },
@@ -67,11 +68,12 @@ suite('Topics CRUD', (ctx: ContextWithHarper) => {
     const { admin, httpURL } = ctx.harper;
     const auth = basicAuth(admin.username, admin.password);
 
-    await fetch(`${httpURL}/Topics/test-sensor-update`, {
+    const setupRes = await fetch(`${httpURL}/Topics/test-sensor-update`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: auth },
       body: JSON.stringify({ topic: 'test-sensor-update', value: 'initial' }),
     });
+    ok(setupRes.ok, `setup PUT failed: HTTP ${setupRes.status}`);
 
     await fetch(`${httpURL}/Topics/test-sensor-update`, {
       method: 'PUT',
@@ -90,11 +92,12 @@ suite('Topics CRUD', (ctx: ContextWithHarper) => {
     const { admin, httpURL } = ctx.harper;
     const auth = basicAuth(admin.username, admin.password);
 
-    await fetch(`${httpURL}/Topics/test-sensor-delete`, {
+    const setupRes = await fetch(`${httpURL}/Topics/test-sensor-delete`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: auth },
       body: JSON.stringify({ topic: 'test-sensor-delete', value: 'to-delete' }),
     });
+    ok(setupRes.ok, `setup PUT failed: HTTP ${setupRes.status}`);
 
     const deleteRes = await fetch(`${httpURL}/Topics/test-sensor-delete`, {
       method: 'DELETE',

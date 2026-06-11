@@ -174,8 +174,24 @@ suite('Real-time transports', (ctx: ContextWithHarper) => {
       `expected text/event-stream, got ${sseRes.headers.get('content-type')}`,
     );
 
-    const reader = sseRes.body!.getReader();
+    ok(sseRes.body, 'SSE response body should not be null');
+    const reader = sseRes.body.getReader();
     const decoder = new TextDecoder();
+
+    // Parse SSE data: lines and check that a JSON payload's value field equals '15'.
+    function sseHasValue(raw: string, expected: string): boolean {
+      for (const line of raw.split('\n')) {
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice('data:'.length).trim();
+        try {
+          const parsed = JSON.parse(payload) as { value?: unknown };
+          if (parsed.value === expected) return true;
+        } catch {
+          // not JSON — skip
+        }
+      }
+      return false;
+    }
 
     // Read the stream and look for the updated value pushed after we change the record.
     const readUpdate = (async () => {
@@ -184,7 +200,7 @@ suite('Real-time transports', (ctx: ContextWithHarper) => {
         const { value, done } = await reader.read();
         if (done) return null;
         buffer += decoder.decode(value, { stream: true });
-        if (buffer.includes('15')) return buffer;
+        if (sseHasValue(buffer, '15')) return buffer;
       }
     })();
 
@@ -199,6 +215,6 @@ suite('Real-time transports', (ctx: ContextWithHarper) => {
 
     const streamed = await withTimeout(readUpdate, 15000, 'sse update');
     ac.abort();
-    ok(streamed && streamed.includes('15'), 'SSE stream should deliver the updated brightness value (15)');
+    ok(streamed && sseHasValue(streamed, '15'), 'SSE stream should deliver the updated brightness value (15)');
   });
 });
