@@ -1,3 +1,12 @@
+> [!IMPORTANT]
+> **This repository is archived and read-only.**
+>
+> It's a point-in-time snapshot built to accompany [Real-Time Pub/Sub Without the "Stack"](https://www.harper.fast/resources/real-time-pub-sub-without-the-stack).
+> It is pinned to **HarperDB v4** and is preserved for reference.
+> It is **not** kept in sync with current releases and may not be supported in latest Harper versions.
+>
+> For up-to-date guides and reference docs, see the [Harper docs](https://docs.harper.fast) and join our [Discord](https://harper.fast/discord).
+
 # LED Sign Control with Harper & Vue
 
 Real-time LED sign control system built with [Harper](https://www.harperdb.io/) and Vue 3. Control multiple LED signs via MQTT with a responsive web interface featuring bidirectional real-time synchronization.
