@@ -123,7 +123,7 @@ Example: `led-sign/2FE598/message` with value `"Hello World"`
 
 ### Prerequisites
 
-- [Harper](https://docs.harperdb.io/docs/install-harperdb): `npm install -g harperdb`
+- [Harper](https://docs.harperdb.io/docs/install-harperdb): `npm install -g harper`
 - Node.js 16+ for Vue development
 
 ### Installation
@@ -145,7 +145,7 @@ Example: `led-sign/2FE598/message` with value `"Hello World"`
 4. Start Harper:
 
    ```bash
-   harperdb run .
+   harper run .
    ```
 
 5. In development, run Vue dev server:
